@@ -5,3 +5,4 @@ __pycache__/
 data/raw/
 *.pyc
 .ipynb_checkpoints/
+medication_information_extraction_using_llms/
