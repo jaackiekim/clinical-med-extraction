@@ -3,7 +3,7 @@
 ## Research Question
 
 When medication extraction systems process clinical notes, do their errors
-distribute randomly across drug types — or do they concentrate
+distribute randomly across drug types or do they concentrate
 systematically in specific categories? And if errors are systematic, what
 does that mean for the validity of downstream pharmacoepidemiology studies
 built on that extracted data?
@@ -15,7 +15,7 @@ extraction from unstructured clinical notes. At health tech companies,
 extracted medication information feeds directly into cohort definitions,
 treatment timelines, and drug safety analyses. A model that extracts drug
 names at F1 = 0.74 overall but collapses to F1 = 0.14 on chemotherapy
-agents does not just produce noisy data — it introduces differential
+agents does not just produce noisy data, it introduces differential
 misclassification that can systematically bias study conclusions in exactly
 the cases where dosing errors carry the most clinical risk.
 
@@ -40,10 +40,6 @@ Corpus statistics (test set, 202 notes):
 | With Dosage annotation | 2,617 (24.7%) |
 | Discontinuous spans | 613 (5.8%) |
 
-> **Data governance note:** n2c2 data is protected by a Data Use Agreement
-> and cannot be sent to external APIs. GPT-4o evaluation uses MTSamples
-> (publicly available clinical transcripts) as a DUA-compliant substitute.
-> This is an intentional design decision, not a limitation.
 
 ## Models Evaluated
 
@@ -77,7 +73,7 @@ The oncology result is structurally expected. Regex patterns designed for
 standard `drug 500 mg` notation cannot handle AUC-based dosing (carboplatin
 AUC 5) or BSA-based dosing (paclitaxel 175 mg/m2), which are the dominant
 dosing conventions in chemotherapy. The question this project asks of
-GPT-4o and BioMistral is whether LLMs can close that gap — and whether
+GPT-4o and BioMistral is whether LLMs can close that gap and whether
 their failures, if any, are distributed differently.
 
 PRN strength F1 of 0.489 reflects a separate structural challenge: range
