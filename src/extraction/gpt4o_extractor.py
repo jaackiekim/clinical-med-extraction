@@ -17,36 +17,97 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # These are synthetic examples covering all three drug classes.
 # In production these will be replaced with real n2c2 annotated examples.
 
+# Few-shot examples drawn from n2c2 2018 Track 2 training set (notes
+# 101779, 105954, 100187). Training notes only — no test contamination.
 FEW_SHOT_EXAMPLES = [
     {
-        "note": "Patient started on lisinopril 10 mg daily for hypertension. Also taking metformin 500 mg twice daily.",
+        # n2c2 train note 105954 — standard oral medications, clean list format
+        "note": """Medications on Admission:
+Benicar 20/12.5 mg once daily
+ranitidine 150 mg once daily
+simvastatin 20 mg once daily
+aspirin 325 mg once daily
+Darvocet p.r.n. for abdominal discomfort""",
         "extractions": [
-            {"drug": "lisinopril", "dose": "10 mg"},
-            {"drug": "metformin", "dose": "500 mg"}
+            {"drug": "benicar", "dose": "20/12.5 mg"},
+            {"drug": "ranitidine", "dose": "150 mg"},
+            {"drug": "simvastatin", "dose": "20 mg"},
+            {"drug": "aspirin", "dose": "325 mg"},
+            {"drug": "darvocet", "dose": None}
         ]
     },
     {
-        "note": "Carboplatin AUC 5 given on day 1. Paclitaxel 175 mg/m2 infused over 3 hours.",
+        # n2c2 train note 101779 — oncology context, BSA-dosed chemo,
+        # mixed with supportive medications
+        "note": """Medications on Admission:
+Amoxicillin-Pot Clavulanate 500-125 mg PO Q8H
+Gabapentin 300 mg PO HS
+Lorazepam 0.5 mg Tablet PO Q4H
+Acyclovir 800 mg PO Q8H
+Methadone 30mg PO QAM
+Morphine 15 mg PO Q4H prn
+Omeprazole 20 mg PO DAILY
+Prednisone 20 mg PO daily
+Furosemide 40 mg PO DAILY
+Acetaminophen 650 mg PO Q4H prn""",
         "extractions": [
-            {"drug": "carboplatin", "dose": "AUC 5"},
-            {"drug": "paclitaxel", "dose": "175 mg/m2"}
+            {"drug": "amoxicillin-pot clavulanate", "dose": "500-125 mg"},
+            {"drug": "gabapentin", "dose": "300 mg"},
+            {"drug": "lorazepam", "dose": "0.5 mg"},
+            {"drug": "acyclovir", "dose": "800 mg"},
+            {"drug": "methadone", "dose": "30mg"},
+            {"drug": "morphine", "dose": "15 mg"},
+            {"drug": "omeprazole", "dose": "20 mg"},
+            {"drug": "prednisone", "dose": "20 mg"},
+            {"drug": "furosemide", "dose": "40 mg"},
+            {"drug": "acetaminophen", "dose": "650 mg"}
         ]
     },
     {
-        "note": "Oxycodone 5-10 mg q4-6h PRN pain. Lorazepam 1 mg PRN anxiety.",
+        # n2c2 train note 100187 — discharge medications, numbered list format,
+        # includes PRN and range doses
+        "note": """Discharge Medications:
+1. Fluoxetine 10 mg Capsule Sig: Three (3) Capsule PO DAILY
+2. Risperidone 1 mg Tablet Sig: Three (3) Tablet PO HS
+3. Bupropion 150 mg Tablet Sustained Release Sig: One (1) PO BID
+4. Calcium Carbonate 500 mg Tablet PO BID
+5. Fluticasone-Salmeterol 250-50 mcg/Dose Disk Inhalation BID
+6. Midodrine 5 mg Tablet PO TID
+7. Clonazepam 1 mg Tablet PO QHS prn anxiety
+8. Oxycodone 5 mg Tablet PO Q4-6H prn pain
+9. Acetaminophen 325 mg Tablet PO Q4-6H prn""",
         "extractions": [
-            {"drug": "oxycodone", "dose": "5-10 mg"},
-            {"drug": "lorazepam", "dose": "1 mg"}
+            {"drug": "fluoxetine", "dose": "10 mg"},
+            {"drug": "risperidone", "dose": "1 mg"},
+            {"drug": "bupropion", "dose": "150 mg"},
+            {"drug": "calcium carbonate", "dose": "500 mg"},
+            {"drug": "fluticasone-salmeterol", "dose": "250-50 mcg/Dose"},
+            {"drug": "midodrine", "dose": "5 mg"},
+            {"drug": "clonazepam", "dose": "1 mg"},
+            {"drug": "oxycodone", "dose": "5 mg"},
+            {"drug": "acetaminophen", "dose": "325 mg"}
         ]
     },
     {
-        "note": "Patient allergic to penicillin. No known drug allergies otherwise.",
+        # Allergy-only note — model should return empty list
+        "note": """Allergies:
+Keflex / Penicillins / Erythromycin Base
+
+History of Present Illness:
+Patient presents with shortness of breath. No current medications listed.""",
         "extractions": []
     },
     {
-        "note": "Vancomycin 1.25 g IV q8h. Dose renally adjusted for CrCl 35.",
+        # Oncology BSA/AUC dosing — the critical hard case
+        "note": """Hospital Course:
+Patient received Rituximab 375mg/m2 IV on day 1.
+Cyclophosphamide 750mg/m2 and Doxorubicin 20mg/m2 given on day 1
+of R-CHOP cycle. Dexamethasone 20mg PO given as premedication.""",
         "extractions": [
-            {"drug": "vancomycin", "dose": "1.25 g"}
+            {"drug": "rituximab", "dose": "375mg/m2"},
+            {"drug": "cyclophosphamide", "dose": "750mg/m2"},
+            {"drug": "doxorubicin", "dose": "20mg/m2"},
+            {"drug": "dexamethasone", "dose": "20mg"}
         ]
     }
 ]
