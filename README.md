@@ -50,35 +50,53 @@ Corpus statistics (test set, 202 notes):
 | GPT-4o (5-shot) | MTSamples | Proprietary LLM | In progress |
 | BioMistral | n2c2 2018 | Domain-adapted open LLM | Planned |
 
-## Preliminary Results — Regex Baseline (n2c2 2018 Test Set)
+## Results (n2c2 2018 Test Set, 202 notes, 10,575 drug mentions)
 
-Evaluated on 202 notes, 10,575 drug mentions. Lenient matching with fuzzy
-drug name normalization (SequenceMatcher >= 0.75).
+Lenient matching with fuzzy drug name normalization (SequenceMatcher >= 0.75).
 
-| Drug Class | Drug P | Drug R | Drug F1 | Strength F1 | N |
-|---|---|---|---|---|---|
-| Standard | 0.871 | 0.618 | 0.723 | 0.595 | 8,746 |
-| Oncology | 0.083 | 0.474 | 0.141 | 0.000 | 152 |
-| PRN | 0.598 | 0.708 | 0.648 | 0.489 | 1,677 |
-| **Overall** | 0.893 | 0.630 | **0.739** | **0.626** | 10,575 |
+### Drug F1 by model and drug class
+
+| Drug Class | Regex | GPT-4o Zero-Shot | GPT-4o Few-Shot |
+|---|---|---|---|
+| Standard | 0.723 | 0.737 | 0.592 |
+| Oncology | 0.141 | 0.354 | 0.223 |
+| PRN | 0.648 | 0.846 | 0.786 |
+| **Overall** | **0.739** | **0.755** | **0.627** |
+
+### Strength F1 by model and drug class
+
+| Drug Class | Regex | GPT-4o Zero-Shot | GPT-4o Few-Shot |
+|---|---|---|---|
+| Standard | 0.595 | 0.847 | 0.808 |
+| Oncology | 0.000 | 0.276 | 0.213 |
+| PRN | 0.489 | 0.861 | 0.844 |
+| **Overall** | **0.626** | **0.858** | **0.826** |
 
 ### What this shows
 
-The aggregate Drug F1 of 0.739 obscures a near-total failure on oncology
-drugs (F1 = 0.141) and a complete failure on oncology strength extraction
-(F1 = 0.000). This is the core finding: aggregate metrics hide clinically
-meaningful stratified failure patterns.
+Aggregate Drug F1 across models spans a narrow range (0.627-0.755), which
+would suggest broadly comparable performance. Stratified evaluation reveals
+a different picture: oncology Drug F1 ranges from 0.141 to 0.354, and
+oncology Strength F1 ranges from 0.000 to 0.276. No model achieves
+acceptable oncology strength extraction. This is the core finding:
+aggregate metrics obscure systematic failure concentrated in exactly the
+drug class where dosing errors carry the highest clinical risk.
 
-The oncology result is structurally expected. Regex patterns designed for
-standard `drug 500 mg` notation cannot handle AUC-based dosing (carboplatin
-AUC 5) or BSA-based dosing (paclitaxel 175 mg/m2), which are the dominant
-dosing conventions in chemotherapy. The question this project asks of
-GPT-4o and BioMistral is whether LLMs can close that gap and whether
-their failures, if any, are distributed differently.
+GPT-4o zero-shot substantially improves strength extraction overall
+(Str F1: 0.626 -> 0.858) driven by standard and PRN classes where
+contextual understanding outperforms regex pattern matching. The oncology
+gap persists: GPT-4o zero-shot recovers drug detection (0.141 -> 0.354)
+but strength extraction remains poor (0.000 -> 0.276), consistent with
+GPT-4o recognizing chemo drug names but failing to reliably normalize
+AUC-based and BSA-based dosing notation.
 
-PRN strength F1 of 0.489 reflects a separate structural challenge: range
-doses (oxycodone 5-10 mg q4h PRN) require recognizing that the dose is
-conditional and expressed as an interval, not a single value.
+Few-shot prompting degrades recall across all classes (overall Drug R:
+0.610 -> 0.460), likely because in-context examples bias extraction toward
+structured medication list formatting, causing the model to miss drugs
+mentioned in narrative prose sections of discharge notes. Precision
+remains high (0.986), but the recall penalty dominates.
+
+BioMistral evaluation in progress.
 
 ## Evaluation Framework
 
