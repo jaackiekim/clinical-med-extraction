@@ -121,21 +121,25 @@ def extract_doses(text: str) -> list:
 
 def extract_drug_names(text: str, drug_vocab: set) -> list:
     """
-    Find drug name mentions in text by matching against RxNorm vocabulary.
-    Uses word-boundary matching to avoid partial matches.
-    Returns list of dicts with name and span.
+    Find drug name mentions by scanning text tokens against RxNorm vocab.
+    O(n) in text length rather than O(vocab_size * text_length).
+    Handles 1, 2, and 3-token drug names (e.g. tylenol with codeine).
     """
     found = []
     text_lower = text.lower()
+    tokens = []
+    for chunk in re.finditer(r'\S+', text_lower):
+        tokens.append((chunk.group(), chunk.start(), chunk.end()))
 
-    for drug in drug_vocab:
-        # Use word boundary pattern
-        pattern = r'\b' + re.escape(drug) + r'\b'
-        for m in re.finditer(pattern, text_lower):
-            found.append({
-                "drug": drug,
-                "span": m.span()
-            })
+    for i in range(len(tokens)):
+        for n in (3, 2, 1):
+            if i + n > len(tokens):
+                continue
+            phrase = " ".join(t[0] for t in tokens[i:i+n])
+            if phrase in drug_vocab:
+                phrase_end = tokens[i+n-1][2]
+                found.append({"drug": phrase, "span": (tokens[i][1], phrase_end)})
+                break
 
     return found
 
