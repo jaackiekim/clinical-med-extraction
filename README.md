@@ -172,3 +172,11 @@ python3 src/evaluation/run_evaluation.py
   Identification from EHRs Using Large Language Models.
 - Henry et al. (2020). 2018 n2c2 shared task on adverse drug events and
   medication extraction. JAMIA.
+
+## Figures
+
+### Aggregate vs. Stratified F1
+![Aggregate vs Stratified F1](results/figures/fig1_aggregate_vs_stratified_f1.png)
+
+### Aggregate vs. Oncology Drug F1
+![Oncology Delta](results/figures/fig3_oncology_delta.png)
