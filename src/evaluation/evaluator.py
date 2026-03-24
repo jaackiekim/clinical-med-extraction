@@ -14,12 +14,16 @@ from pathlib import Path
 
 DRUG_CLASSES = {
     "oncology": {
-        "carboplatin", "cisplatin", "oxaliplatin", "paclitaxel", "docetaxel",
+        "carboplatin", "carboplatinum", "cisplatin", "oxaliplatin", "paclitaxel", "docetaxel",
         "doxorubicin", "cyclophosphamide", "methotrexate", "fluorouracil",
         "gemcitabine", "vincristine", "vinblastine", "etoposide", "irinotecan",
         "topotecan", "capecitabine", "temozolomide", "bevacizumab", "rituximab",
         "trastuzumab", "pembrolizumab", "nivolumab", "atezolizumab", "letrozole",
-        "anastrozole", "tamoxifen", "leuprolide", "bicalutamide"
+        "anastrozole", "tamoxifen", "leuprolide", "bicalutamide",
+        "bleomycin", "carmustine", "lomustine", "cytarabine", "imatinib",
+        "erlotinib", "hydroxyurea", "mercaptopurine", "thioguanine", "busulfan",
+        "melphalan", "chlorambucil", "procarbazine", "dacarbazine",
+        "neupogen", "filgrastim", "chemotherapy", "chemo",
     },
     "standard_oral": {
         "metformin", "lisinopril", "atorvastatin", "simvastatin", "amlodipine",
@@ -38,12 +42,29 @@ DRUG_CLASSES = {
 }
 
 
-def classify_drug(drug_name: str) -> str:
-    """Assign drug to class. Returns 'other' if not in taxonomy."""
+PRN_KEYWORDS = {"prn", "as needed", "p.r.n", "pain", "breakthrough"}
+
+def classify_drug(drug_name: str, note_text: str = "") -> str:
+    """Assign drug to class. Returns 'other' if not in taxonomy.
+    
+    Uses note_text context window to detect PRN drugs by surrounding keywords.
+    Oncology classification also catches 'chemo' substring for generic references.
+    """
     name = drug_name.lower().strip()
+    # Check explicit taxonomy first
     for cls, drugs in DRUG_CLASSES.items():
         if name in drugs:
             return cls
+    # Catch generic chemo references not in taxonomy
+    if "chemo" in name:
+        return "oncology"
+    # PRN context window: check surrounding text for PRN keywords
+    if note_text:
+        idx = note_text.lower().find(name)
+        if idx >= 0:
+            window = note_text[max(0, idx-50):idx+len(name)+80].lower()
+            if any(k in window for k in PRN_KEYWORDS):
+                return "prn"
     return "other"
 
 

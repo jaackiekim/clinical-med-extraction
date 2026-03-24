@@ -16,31 +16,7 @@ from src.baselines.regex_extractor import load_rxnorm_drugs, extract_medications
 
 # ── Drug class taxonomy ───────────────────────────────────────────────────────
 
-ONCOLOGY_DRUGS = {
-    "carboplatin", "cisplatin", "oxaliplatin", "paclitaxel", "docetaxel",
-    "doxorubicin", "cyclophosphamide", "methotrexate", "fluorouracil",
-    "vincristine", "vinblastine", "gemcitabine", "irinotecan", "topotecan",
-    "etoposide", "bleomycin", "carmustine", "lomustine", "cytarabine",
-    "capecitabine", "imatinib", "erlotinib", "bevacizumab", "rituximab",
-    "trastuzumab", "temozolomide", "hydroxyurea", "mercaptopurine",
-    "thioguanine", "busulfan", "melphalan", "chlorambucil", "procarbazine",
-    "dacarbazine", "neupogen", "filgrastim", "chemotherapy", "chemo",
-}
-
-PRN_KEYWORDS = {"prn", "as needed", "p.r.n", "pain", "breakthrough"}
-
-def classify_drug(drug_text: str, note_text: str = "") -> str:
-    drug_lower = drug_text.lower().strip()
-    if drug_lower in ONCOLOGY_DRUGS or "chemo" in drug_lower:
-        return "oncology"
-    # Check for PRN context in surrounding text
-    if note_text:
-        idx = note_text.lower().find(drug_lower)
-        if idx >= 0:
-            window = note_text[max(0, idx-50):idx+len(drug_lower)+80].lower()
-            if any(k in window for k in PRN_KEYWORDS):
-                return "prn"
-    return "standard"
+from src.evaluation.evaluator import classify_drug
 
 
 # ── Matching logic ────────────────────────────────────────────────────────────
@@ -108,14 +84,14 @@ def evaluate_note(gold_records, pred_results, note_text):
             "strength_correct": strength_tp,
         })
 
-    # Count false positives: predictions with no matching gold
-    fp_count = 0
+    # Collect false positives: predictions with no matching gold
+    fp_drugs = []
     for pred in pred_results:
         matched = any(drug_matches(pred["drug"], normalize(g.drug_text)) for g in gold_records)
         if not matched:
-            fp_count += 1
+            fp_drugs.append(pred["drug"])
 
-    return results, fp_count
+    return results, fp_drugs
 
 
 # ── Aggregate metrics ─────────────────────────────────────────────────────────
@@ -127,7 +103,7 @@ def compute_f1(tp, fp, fn):
     return precision, recall, f1
 
 def aggregate_results(all_results, all_fp):
-    classes = ["standard", "oncology", "prn", "overall"]
+    classes = ["standard_oral", "oncology", "prn", "other", "overall"]
     metrics = {c: {"drug_tp": 0, "drug_fp": 0, "drug_fn": 0,
                    "str_tp": 0, "str_fp": 0, "str_fn": 0} for c in classes}
 
@@ -144,8 +120,10 @@ def aggregate_results(all_results, all_fp):
                         metrics[c]["str_tp"] += 1
                     else:
                         metrics[c]["str_fn"] += 1
-        for c in classes:
-            metrics[c]["drug_fp"] += fp  # approximate: assign all FP to all classes
+        for fp_drug in fp:
+            fp_cls = classify_drug(fp_drug)
+            metrics[fp_cls]["drug_fp"] += 1
+            metrics["overall"]["drug_fp"] += 1
 
     print(f"\n{'='*65}")
     print(f"{'Drug Class':<12} {'Drug P':>7} {'Drug R':>7} {'Drug F1':>8} {'Str F1':>8} {'N':>6}")
