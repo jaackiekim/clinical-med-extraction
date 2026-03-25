@@ -178,4 +178,7 @@ python3 src/evaluation/run_evaluation.py
 
 ## Figures
 
-Results figures will be updated with the full five-model comparison. See `results/figures/` after running `src/evaluation/run_comparison.py`.
+### Full five-model comparison — Drug F1 and Recall by subgroup
+![Full comparison](results/figures/fig_full_comparison.png)
+
+Oncology rows highlighted in red where F1 < 0.50. BioMistral recall is a lower bound due to output truncation on ~11% of notes.
