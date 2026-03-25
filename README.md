@@ -46,11 +46,14 @@ Corpus statistics (test set, 202 notes):
 | Model | Dataset | Type | Status |
 |---|---|---|---|
 | Regex + RxNorm | n2c2 2018 | Rule-based baseline | Complete |
-| GPT-4o (zero-shot) | MTSamples | Proprietary LLM | In progress |
-| GPT-4o (5-shot) | MTSamples | Proprietary LLM | In progress |
-| BioMistral | n2c2 2018 | Domain-adapted open LLM | Planned |
+| GPT-4o (zero-shot) | n2c2 2018 | Proprietary LLM | Complete |
+| GPT-4o (few-shot) | n2c2 2018 | Proprietary LLM | Complete |
+| BioMistral-7B-DARE (zero-shot) | n2c2 2018 | Domain-adapted open LLM | Complete |
+| BioMistral-7B-DARE (few-shot) | n2c2 2018 | Domain-adapted open LLM | Complete |
 
 ## Results (n2c2 2018 Test Set, 202 notes, 10,575 drug mentions)
+
+> **Note:** Results below are preliminary (GPT-4o and regex only). Full five-model comparison including BioMistral-7B-DARE will be updated shortly. Run `python src/evaluation/run_comparison.py` for current numbers.
 
 Lenient matching with fuzzy drug name normalization (SequenceMatcher >= 0.75).
 
@@ -175,8 +178,4 @@ python3 src/evaluation/run_evaluation.py
 
 ## Figures
 
-### Aggregate vs. Stratified F1
-![Aggregate vs Stratified F1](results/figures/fig1_aggregate_vs_stratified_f1.png)
-
-### Aggregate vs. Oncology Drug F1
-![Oncology Delta](results/figures/fig3_oncology_delta.png)
+Results figures will be updated with the full five-model comparison. See `results/figures/` after running `src/evaluation/run_comparison.py`.
